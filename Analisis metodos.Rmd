@@ -1,0 +1,137 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+getwd()
+setwd("C:/Users/LENOVO/Desktop/Complejidad Computacional")
+
+```
+
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+tiempos <- read_csv("test.csv")
+colnames(tiempos)<- c("Algoritmo","Tiempo", "Size", "Comparaciones", "Intercambios", "Opt")
+
+```
+
+
+```{r}
+
+burbuja <- tiempos %>% filter(Algoritmo=="burbuja") 
+
+burbujaDetalles <- burbuja %>% group_by(Size, Opt) %>% summarise(promedioT=mean(Tiempo),
+               Promediointer=mean(Intercambios),
+               Tmax=max(Tiempo),
+               Tmin=min(Tiempo),
+               Maxintercambios = max(Intercambios),
+               Minintercambios = min(Intercambios),
+               DesvTiempo = sd(Tiempo)
+               )
+```
+
+
+```{r}
+graficaDetalles <- function(nombre){
+  nombre %>% ggplot(aes(Size, promedioT))+geom_point()+ stat_smooth(method="lm", se=FALSE, aes(colour="lineal")) +
+stat_smooth(method="lm", se=FALSE, formula=y~poly(x,2), aes(colour="cuadrada"))
+}
+```
+
+```{r}
+graficaDetalles(burbujaDetalles)+ facet_grid(Opt ~ ., scale="free_y")
+```
+
+
+
+```{r}
+modelo <- burbujaDetalles%>% filter(Opt=="O0")%>%lm(formula=promedioT ~ poly(Size,2), .)
+summary(modelo)
+
+```
+Segun los resultados del modelo se obtiene la siguiente funcion para determinar el comportamiento del ordenamiento burbuja con una optimización O0 $43.41036Size^2 +175.23718Size+71.57907$ con un $r^2$ de 1
+
+```{r}
+modelo <- burbujaDetalles%>% filter(Opt=="O2")%>%lm(formula=promedioT ~ poly(Size,2), .)
+summary(modelo)
+```
+
+Para una optimizacion $O2$  da como resultado una función cubica que describe con un $r^2$ de 0.9999 el comportamiento de los datos, la cual es $7.36914Size^2+27.97590Size^2+11.24547$
+
+```{r}
+
+burbujaDetalles %>% filter(Opt=="O3") %>% ggplot(aes(Size, promedioT))+geom_point()+ stat_smooth(method="lm", se=FALSE, aes(colour="lineal")) +
+stat_smooth(method="lm", se=FALSE, formula=y~poly(x,3), aes(colour="cuadrada"))
+
+```
+
+```{r}
+modelo <- burbujaDetalles%>% filter(Opt=="O3")%>%lm(formula=promedioT ~ poly(Size,2), .)
+summary(modelo)
+```
+
+
+```{r}
+burbujaDetalles %>% ggplot(aes(Size, promedioT, col=Opt))+geom_point()+
+stat_smooth(method="lm", se=FALSE, formula=y~poly(x,3))
+
+```
+
+
+```{r}
+burbujaDetalles %>% ggplot(aes(1,promedioT))+geom_boxplot()
+
+```
+
+
+
+```{r}
+quicksort <- tiempos %>% filter(Algoritmo=="quicksort")
+
+```
+
+
+```{r}
+quicksortDetalles <- quicksort %>% group_by(Size, Opt) %>% summarise(promedioT=mean(Tiempo),
+               Promediointer=mean(Intercambios),
+               Tmax=max(Tiempo),
+               Tmin=min(Tiempo),
+               Maxintercambios = max(Intercambios),
+               Minintercambios = min(Intercambios),
+               DesvTiempo = sd(Tiempo)
+               )
+
+```
+
+
+```{r,fig.align='center',fig.height=8,fig.width=16}
+graficaDetalles(quicksortDetalles)+facet_wrap(~Opt)+theme_minimal()
+
+```
+```{r}
+radix <- tiempos %>% filter(Algoritmo=="radix")
+radixDetalles <- radix %>% group_by(Size, Opt) %>% summarise(promedioT=mean(Tiempo),
+               Promediointer=mean(Intercambios),
+               Tmax=max(Tiempo),
+               Tmin=min(Tiempo),
+               Maxintercambios = max(Intercambios),
+               Minintercambios = min(Intercambios),
+               DesvTiempo = sd(Tiempo)
+               )
+
+```
+
+```{r}
+
+graficaDetalles(quicksortDetalles)+facet_grid(Opt ~ .)
+
+
+```
+
