@@ -33,7 +33,9 @@ burbujaDetalles <- burbuja %>% group_by(Size, Opt) %>% summarise(promedioT=mean(
                Tmin=min(Tiempo),
                Maxintercambios = max(Intercambios),
                Minintercambios = min(Intercambios),
-               DesvTiempo = sd(Tiempo)
+               DesvTiempo = sd(Tiempo),
+               Maxcomparaciones =max(Comparaciones),
+               Mincomparaciones = min(Comparaciones)
                )
 ```
 
@@ -68,7 +70,7 @@ Para una optimizacion $O2$  da como resultado una función cubica que describe co
 ```{r}
 
 burbujaDetalles %>% filter(Opt=="O3") %>% ggplot(aes(Size, promedioT))+geom_point()+ stat_smooth(method="lm", se=FALSE, aes(colour="lineal")) +
-stat_smooth(method="lm", se=FALSE, formula=y~poly(x,3), aes(colour="cuadrada"))
+stat_smooth(method="lm", se=FALSE, formula=y~poly(x,2), aes(colour="cuadrada"))
 
 ```
 
@@ -76,11 +78,17 @@ stat_smooth(method="lm", se=FALSE, formula=y~poly(x,3), aes(colour="cuadrada"))
 modelo <- burbujaDetalles%>% filter(Opt=="O3")%>%lm(formula=promedioT ~ poly(Size,2), .)
 summary(modelo)
 ```
+$r^2$ optimización O0 regresion lineal 0.9422
+$r^2$ optimización O2 regresion lineal 0.9348
+$r^2$ optimización O3 regresion lineal 0.957
 
+$r^2$ optimización o0 regresion lineal 1
+$r^2$ optimización O2 regresion lineal 0.9997
+$r^2$ optimización O3 regresion polinomial grado 2 0.9984
 
 ```{r}
 burbujaDetalles %>% ggplot(aes(Size, promedioT, col=Opt))+geom_point()+
-stat_smooth(method="lm", se=FALSE, formula=y~poly(x,3))
+stat_smooth(method="lm", se=FALSE, formula=y~poly(x,2))
 
 ```
 
@@ -105,7 +113,9 @@ quicksortDetalles <- quicksort %>% group_by(Size, Opt) %>% summarise(promedioT=m
                Tmin=min(Tiempo),
                Maxintercambios = max(Intercambios),
                Minintercambios = min(Intercambios),
-               DesvTiempo = sd(Tiempo)
+               DesvTiempo = sd(Tiempo),
+               Maxcomparaciones =max(Comparaciones),
+               Mincomparaciones = min(Comparaciones)
                )
 
 ```
@@ -116,6 +126,21 @@ graficaDetalles(quicksortDetalles)+facet_wrap(~Opt)+theme_minimal()
 
 ```
 ```{r}
+modelo <- quicksortDetalles%>% filter(Opt=="O0")%>%lm(formula=promedioT ~ Size, .)
+summary(modelo)
+
+```
+$r^2$ optimización O0 regresion lineal 0.9982
+$r^2$ optimización O2 regresion lineal 0.9924
+$r^2$ optimización O3 regresion lineal 0.994
+quicksort
+$r^2$ optimización o0 regresion polinomial grado 2 1
+$r^2$ optimización O2 regresion polinomial grado 2 0.9924
+$r^2$ optimización O3 regresion polinomial grado 2 0.9963
+
+
+
+```{r}
 radix <- tiempos %>% filter(Algoritmo=="radix")
 radixDetalles <- radix %>% group_by(Size, Opt) %>% summarise(promedioT=mean(Tiempo),
                Promediointer=mean(Intercambios),
@@ -123,15 +148,107 @@ radixDetalles <- radix %>% group_by(Size, Opt) %>% summarise(promedioT=mean(Tiem
                Tmin=min(Tiempo),
                Maxintercambios = max(Intercambios),
                Minintercambios = min(Intercambios),
-               DesvTiempo = sd(Tiempo)
+               DesvTiempo = sd(Tiempo),
+               Maxcomparaciones =max(Comparaciones),
+               Mincomparaciones = min(Comparaciones)
                )
 
 ```
 
 ```{r}
 
-graficaDetalles(quicksortDetalles)+facet_grid(Opt ~ .)
+graficaDetalles(radixDetalles)+facet_grid(Opt ~ .)
 
 
 ```
+```{r}
+modelo <- radixDetalles%>% filter(Opt=="O3")%>%lm(formula=promedioT ~ poly(Size,2), .)
+summary(modelo)
 
+```
+
+$r^2$ optimización O0 regresion lineal 0.9996
+$r^2$ optimización O2 regresion lineal 0.999
+$r^2$ optimización O3 regresion lineal 0.9877
+radix
+$r^2$ optimización o0 regresion polinomial grado 2 0.9996
+$r^2$ optimización O2 regresion polinomial grado 2 0.9994
+$r^2$ optimización O3 regresion polinomial grado 2 0.9953
+
+
+------------------------COMPARACIONES -------------------------------------
+BURBUJA
+```{r}
+burbuja %>% group_by(Size) %>% summarise(meancambios=mean(Comparaciones)) %>% ggplot(aes(Size,meancambios))+ geom_point()+ stat_smooth(method="lm", se=FALSE, formula=y ~ poly(x,2))
+```
+
+
+```{r}
+modelo<- burbuja %>% group_by(Size)%>% summarise(meancambios=mean(Comparaciones)) %>% lm(formula=meancambios ~ poly(Size,2),.)
+summary(modelo)
+```
+$r^2=1$
+
+QUICKSORT
+```{r}
+quicksort %>% group_by(Size,Opt) %>% summarise(meancambios=mean(Comparaciones)) %>% ggplot(aes(Size,meancambios, col=Opt))+ geom_point()+ stat_smooth(method="lm", se=FALSE, formula=y ~ poly(x,2)) + facet_grid(Opt~.)
+
+```
+
+Radix
+
+```{r}
+radix %>% group_by(Size,Opt) %>% summarise(meancambios=mean(Comparaciones)) %>% ggplot(aes(Size,meancambios, col=Opt))+ geom_point()+ stat_smooth(method="lm", se=FALSE, formula=y ~ poly(x,2)) + facet_grid(Opt~.)
+```
+```{r}
+tiempos %>% group_by(Algoritmo,Size,Opt) %>% summarise(meanComparaciones=mean(Comparaciones)) %>% ggplot(aes(Size,meanComparaciones))+ geom_point()+ stat_smooth(method="lm", se=FALSE, formula=y ~ poly(x,2), aes(colour=Algoritmo)) + facet_grid(Algoritmo~., scale="free_y")
+
+
+```
+quicksort es el que hace menos comparaciones, con un máximo de 4124615 para un vector de tamaño 150000, radix cuenta con un número maximo de comparaciones  de 4874610 para un vector de tamaño 150000, y por último burbuja, el número máximo de comparaciones es 22499700001 (22 mil 499 millones)
+
+-------------------------INTERCAMBIOS--------------------------------------
+Burbuja
+```{r}
+burbuja %>% group_by(Size,Opt) %>% summarise(meancambios=mean(Intercambios)) %>% ggplot(aes(Size,meancambios, col=Opt))+ geom_point()+ stat_smooth(method="lm", se=FALSE, formula=y ~ poly(x,2)) + facet_grid(Opt~.)
+```
+
+```{r}
+modelo<- burbuja %>% group_by(Size,Opt) %>% summarise(meancambios=mean(Intercambios)) %>% lm(formula=meancambios~poly(Size,2))
+summary(modelo)
+```
+$R^2=0.9416$ lineal
+$R^2=1$ segundo grado
+
+
+
+
+quicksort
+```{r}
+quicksort %>% group_by(Size,Opt) %>% summarise(meancambios=mean(Intercambios)) %>% ggplot(aes(Size,meancambios, col=Opt))+ geom_point()+ stat_smooth(method="lm", se=FALSE, formula=y ~ x) + facet_grid(Opt~.)
+```
+
+```{r}
+modelo<- quicksort %>% group_by(Size,Opt) %>% summarise(meancambios=mean(Intercambios)) %>% lm(formula=meancambios~Size)
+summary(modelo)
+```
+$R^2$ = 1
+
+Radix
+```{r}
+radix %>% group_by(Size,Opt) %>% summarise(meancambios=mean(Intercambios)) %>% ggplot(aes(Size,meancambios, col=Opt))+ geom_point()+ stat_smooth(method="lm", se=FALSE, formula=y ~ x) + facet_grid(Opt~.)
+
+```
+
+```{r}
+modelo<- radix %>% group_by(Size,Opt) %>% summarise(meancambios=mean(Intercambios)) %>% lm(formula=meancambios~Size)
+summary(modelo)
+```
+
+$r^2=1$ comportamiento lineal
+
+```{r}
+tiempos %>% group_by(Algoritmo,Size,Opt) %>% summarise(meancambios=mean(Intercambios)) %>% ggplot(aes(Size,meancambios))+ geom_point()+ stat_smooth(method="lm", se=FALSE, formula=y ~ poly(x,2), aes(colour=Algoritmo)) + facet_grid(Algoritmo~., scale="free_y")
+```
+
+quicksort es el que hace menos intercambios, con un maximo de 456598 para un vector de tamaño 150000, radix cuenta con un número maximo de intercambios de 1206598 para un vector de tamaño 150000, y por último burbuja, el número máximo de intercambios es 5654648782 (5 mil 600 millones)
